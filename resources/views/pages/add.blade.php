@@ -4,48 +4,222 @@
 
 @section('content')
 
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
-        <a href="#" class="tile" style="font-size:19px;">+ Категория</a>
-        <a href="#" class="tile" style="font-size:19px;">+ Товар</a>
-        <a href="#" class="tile" style="font-size:19px;">+ Склад</a>
+    @if (session('success'))
+        <div style="padding:14px 18px; margin-bottom:20px; background:#e6f4ea; border:2px solid #2e7d32; color:#2e7d32; border-radius:10px; font-size:18px;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div style="padding:14px 18px; margin-bottom:20px; background:#fdecea; border:2px solid #a32d2d; color:#a32d2d; border-radius:10px; font-size:18px;">
+            <div style="font-weight:600; margin-bottom:6px;">Проверьте форму:</div>
+            <ul style="padding-left:20px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- Быстрые вкладки --}}
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+        <button type="button" data-tab="category" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Категория</button>
+        <button type="button" data-tab="product" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Товар</button>
+        <button type="button" data-tab="warehouse" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Склад</button>
+        <button type="button" data-tab="car" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Марка авто</button>
     </div>
 
-    <div style="border:2px solid #024989; border-radius:10px; padding:24px;">
-        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">
-            Добавить товар
-        </div>
+    {{-- Категория --}}
+    <div data-panel="category" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px;">
+        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Категории</div>
 
-        <form method="POST" action="{{ url('/products') }}" style="display:grid; gap:18px; max-width:460px;">
+        <form method="POST" action="{{ route('categories.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
+            @csrf
+            <input type="text" name="title" placeholder="Название категории" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
+        </form>
+
+        <div>
+            @forelse ($categories as $category)
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
+                    <span>{{ $category->title }}</span>
+                    <form method="POST" action="{{ route('categories.destroy', $category) }}" onsubmit="return confirm('Удалить категорию «{{ $category->title }}»?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
+                    </form>
+                </div>
+            @empty
+                <p style="font-size:18px; color:#555;">Категорий пока нет.</p>
+            @endforelse
+        </div>
+    </div>
+
+    {{-- Товар --}}
+    <div data-panel="product" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px; display:none;">
+        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Добавить товар</div>
+
+        <form id="product-form" method="POST" action="{{ route('products.store') }}" style="display:grid; gap:18px; max-width:460px;">
             @csrf
 
             <div>
                 <label for="title">Название</label>
-                <input type="text" id="title" name="title" placeholder="Например, Колодки Bosch F1" required>
+                <input type="text" id="title" name="title" value="{{ old('title') }}" placeholder="Например, Колодки Bosch F1" required>
             </div>
 
             <div>
                 <label for="category_id">Категория</label>
                 <select id="category_id" name="category_id" required>
-                    {{-- TODO: подставить категории из БД --}}
-                    <option>Тормозные колодки</option>
-                    <option>Фильтры</option>
-                    <option>Масла</option>
-                    <option>Свечи зажигания</option>
+                    @forelse ($categories as $category)
+                        <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->title }}</option>
+                    @empty
+                        <option value="" disabled selected>Сначала добавьте категорию</option>
+                    @endforelse
+                </select>
+            </div>
+
+            <div>
+                <label for="car_id">Марка авто </label>
+                <select id="car_id" name="car_id">
+                    <option value="">Без привязки</option>
+                    @foreach ($cars as $car)
+                        <option value="{{ $car->id }}" @selected(old('car_id') == $car->id)>{{ $car->title }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <div>
                 <label for="cost_price">Себестоимость</label>
-                <input type="number" id="cost_price" name="cost_price" placeholder="45000" required>
+                <input type="text" inputmode="numeric" id="cost_price" name="cost_price" value="{{ old('cost_price') }}" class="number-spaced" placeholder="45 000" required>
             </div>
 
             <div>
                 <label for="markup">Наценка</label>
-                <input type="number" id="markup" name="markup" placeholder="15000" required>
+                <input type="text" inputmode="numeric" id="markup" name="markup" value="{{ old('markup') }}" class="number-spaced" placeholder="15 000" required>
+            </div>
+
+            <div>
+                <label for="unit_id">Единица измерения</label>
+                <select id="unit_id" name="unit_id">
+                    @foreach ($units as $unit)
+                        <option value="{{ $unit->id }}" @selected(old('unit_id') == $unit->id)>{{ $unit->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <hr style="border:none; border-top:1px solid #e2e2e2; margin:4px 0;">
+
+            <div>
+                <label for="warehouse_id">Склад</label>
+                <select id="warehouse_id" name="warehouse_id" required>
+                    @forelse ($warehouses as $warehouse)
+                        <option value="{{ $warehouse->id }}" @selected(old('warehouse_id') == $warehouse->id)>{{ $warehouse->title }}</option>
+                    @empty
+                        <option value="" disabled selected>Сначала добавьте склад</option>
+                    @endforelse
+                </select>
+            </div>
+
+            <div>
+                <label for="quantity">Количество на складе</label>
+                <input type="text" inputmode="numeric" id="quantity" name="quantity" value="{{ old('quantity') }}" class="number-spaced" placeholder="10" required>
             </div>
 
             <button type="submit" class="btn-primary">Сохранить</button>
         </form>
     </div>
+
+    {{-- Склад --}}
+    <div data-panel="warehouse" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px; display:none;">
+        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Склады</div>
+
+        <form method="POST" action="{{ route('warehouses.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
+            @csrf
+            <input type="text" name="title" placeholder="Название склада" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
+        </form>
+
+        <div>
+            @forelse ($warehouses as $warehouse)
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
+                    <span>{{ $warehouse->title }}</span>
+                    <form method="POST" action="{{ route('warehouses.destroy', $warehouse) }}" onsubmit="return confirm('Удалить склад «{{ $warehouse->title }}»?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
+                    </form>
+                </div>
+            @empty
+                <p style="font-size:18px; color:#555;">Складов пока нет.</p>
+            @endforelse
+        </div>
+    </div>
+
+    {{-- Марка авто --}}
+    <div data-panel="car" style="border:2px solid #024989; border-radius:10px; padding:24px; display:none;">
+        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Марки авто</div>
+
+        <form method="POST" action="{{ route('cars.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
+            @csrf
+            <input type="text" name="title" placeholder="Например, Chevrolet Cobalt" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
+        </form>
+
+        <div>
+            @forelse ($cars as $car)
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
+                    <span>{{ $car->title }}</span>
+                    <form method="POST" action="{{ route('cars.destroy', $car) }}" onsubmit="return confirm('Удалить марку «{{ $car->title }}»?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
+                    </form>
+                </div>
+            @empty
+                <p style="font-size:18px; color:#555;">Марок пока нет.</p>
+            @endforelse
+        </div>
+    </div>
+
+    <script>
+        // --- Переключение вкладок ---
+        const buttons = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('[data-panel]');
+
+        function showPanel(name) {
+            panels.forEach(p => p.style.display = p.dataset.panel === name ? 'block' : 'none');
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => showPanel(btn.dataset.tab));
+        });
+
+        showPanel('{{ $errors->has('warehouse_id') || $errors->has('quantity') || $errors->has('cost_price') ? 'product' : 'category' }}');
+
+        // --- Форматирование чисел пробелами (400000 -> 400 000) ---
+        function formatWithSpaces(value) {
+            const digits = value.replace(/\D/g, '');
+            return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        document.querySelectorAll('.number-spaced').forEach(input => {
+            input.addEventListener('input', () => {
+                const cursorFromEnd = input.value.length - input.selectionStart;
+                input.value = formatWithSpaces(input.value);
+                const pos = input.value.length - cursorFromEnd;
+                input.setSelectionRange(pos, pos);
+            });
+            // сразу форматируем значение при перезагрузке страницы после ошибки валидации
+            input.value = formatWithSpaces(input.value);
+        });
+
+        // Перед отправкой формы убираем пробелы — в БД нужно чистое число
+        const productForm = document.getElementById('product-form');
+        productForm.addEventListener('submit', () => {
+            productForm.querySelectorAll('.number-spaced').forEach(input => {
+                input.value = input.value.replace(/\s/g, '');
+            });
+        });
+    </script>
 
 @endsection
