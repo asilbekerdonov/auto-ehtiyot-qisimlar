@@ -122,6 +122,36 @@
             background: #013a6e;
         }
 
+        /* Кнопки-иконки на карточках (изменить / удалить) */
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 2px solid currentColor;
+            background: #ffffff;
+            cursor: pointer;
+        }
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+        .icon-btn--edit {
+            color: #b8860b; /* тёмно-жёлтый — на белом фоне так контрастнее, чем чистый жёлтый */
+        }
+        .icon-btn--edit:hover {
+            background: #fff8e1;
+        }
+        .icon-btn--delete {
+            color: #a32d2d; /* совпадает с цветом ошибок в общей палитре */
+        }
+        .icon-btn--delete:hover {
+            background: #fdecea;
+        }
+
         @media (max-width: 600px) {
             .navbar { padding: 12px 16px; }
             .header { padding: 16px 20px; }

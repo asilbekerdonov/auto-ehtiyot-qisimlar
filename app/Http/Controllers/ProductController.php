@@ -24,8 +24,8 @@ class ProductController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
-            'car_id' => [ 'exists:cars,id'],
-            'unit_id' => [ 'exists:units,id'],
+            'car_id' => ['nullable', 'exists:cars,id'],
+            'unit_id' => ['nullable', 'exists:units,id'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'markup' => ['required', 'numeric', 'min:0'],
             'warehouse_id' => ['required', 'exists:warehouses,id'],
@@ -64,6 +64,45 @@ class ProductController extends Controller
         });
 
         return back()->with('success', 'Товар добавлен');
+    }
+
+    /**
+     * Обновление карточки товара из модального окна "Изменить" на странице Товары.
+     *
+     * Важно: этот метод меняет только сами данные товара (название, категория,
+     * марка авто, себестоимость, наценка, единица, фото) — остаток на складе
+     * здесь НЕ трогаем. У товара может быть остаток сразу на нескольких складах
+     * (таблица quantities), поэтому редактировать конкретный остаток логичнее
+     * на странице "Склад", а не смешивать это с редактированием самой карточки.
+     * Если нужно — можно добавить отдельную форму для этого позже.
+     */
+    public function update(Request $request, Product $product): RedirectResponse
+    {
+        $request->merge([
+            'cost_price' => str_replace(' ', '', (string) $request->input('cost_price')),
+            'markup' => str_replace(' ', '', (string) $request->input('markup')),
+        ]);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'car_id' => ['nullable', 'exists:cars,id'],
+            'unit_id' => ['nullable', 'exists:units,id'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
+            'markup' => ['required', 'numeric', 'min:0'],
+            'image' => ['nullable', 'image', 'max:4096'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
+
+        return back()->with('success', 'Товар обновлён');
     }
 
     public function destroy(Product $product): RedirectResponse
