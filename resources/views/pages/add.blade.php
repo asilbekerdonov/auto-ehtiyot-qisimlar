@@ -59,8 +59,13 @@
     <div data-panel="product" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px; display:none;">
         <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Добавить товар</div>
 
-        <form id="product-form" method="POST" action="{{ route('products.store') }}" style="display:grid; gap:18px; max-width:460px;">
+        <form id="product-form" method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data" style="display:grid; gap:18px; max-width:460px;">
             @csrf
+
+            <div>
+                <label for="image">Фото товара</label>
+                <input type="file" id="image" name="image" accept="image/*" style="width:100%; font-size:17px; padding:10px 0;">
+            </div>
 
             <div>
                 <label for="title">Название</label>
@@ -79,7 +84,7 @@
             </div>
 
             <div>
-                <label for="car_id">Марка авто </label>
+                <label for="car_id">Марка авто (необязательно)</label>
                 <select id="car_id" name="car_id">
                     <option value="">Без привязки</option>
                     @foreach ($cars as $car)

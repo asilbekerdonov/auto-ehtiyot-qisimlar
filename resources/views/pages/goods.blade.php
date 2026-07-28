@@ -38,7 +38,7 @@
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                     @foreach ($products as $product)
                         <div style="border:2px solid #024989; border-radius:12px; overflow:hidden;">
-                            <img src="{{ $placeholder }}" alt="{{ $product->title }}" style="width:100%; height:160px; object-fit:cover; display:block; background:#e8f0f7;">
+                            <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}" style="width:100%; height:160px; object-fit:cover; display:block; background:#e8f0f7;">
                             <div style="padding:16px 18px;">
                                 <div style="font-size:19px; font-weight:500; margin-bottom:4px;">{{ $product->title }}</div>
                                 <div style="font-size:15px; color:#777; margin-bottom:8px;">{{ $product->category->title }}</div>

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->foreignId('car_id')->constrained()->nullOnDelete();
             $table->foreignId('unit_id')->constrained()->nullOnDelete();
+            $table->string('image')->nullable();
             $table->string('title');
             $table->decimal('cost_price', 12, 2);
             $table->decimal('markup', 12, 2);
