@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->string('title'); // например: "шт", "комплект"
+            $table->string('title');
             $table->timestamps();
         });
     }

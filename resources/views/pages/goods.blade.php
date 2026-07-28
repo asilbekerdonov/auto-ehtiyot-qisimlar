@@ -32,12 +32,18 @@ style="display:block; padding:16px 18px; font-size:19px; text-decoration:none; c
 
         {{-- Карточки товаров --}}
 <div style="padding:20px; background:#fff;">
+
+            {{-- Живой поиск: чисто на клиенте, без запросов к серверу --}}
+<input type="text" id="goods-search-input"
+       placeholder="Например: буф — сразу покажет «Буфер» и похожие"
+       autocomplete="off" style="width:100%; margin-bottom:20px;">
+
             @if ($products->isEmpty())
 <p style="font-size:19px; color:#555;">В этой категории пока нет товаров.</p>
             @else
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+<div id="goods-products-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                     @foreach ($products as $product)
-<div style="border:2px solid #024989; border-radius:12px; overflow:hidden;">
+<div class="product-card" data-search="{{ Str::lower($product->title) }}" style="border:2px solid #024989; border-radius:12px; overflow:hidden;">
 <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}" style="width:100%; height:160px; object-fit:cover; display:block; background:#e8f0f7;">
 <div style="padding:16px 18px;">
 <div style="font-size:19px; font-weight:500; margin-bottom:4px;">{{ $product->title }}</div>
@@ -60,7 +66,8 @@ data-car-id="{{ $product->car_id }}"
 data-unit-id="{{ $product->unit_id }}"
 data-cost-price="{{ (int) $product->cost_price }}"
 data-markup="{{ (int) $product->markup }}"
-data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
+data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}"
+data-total-stock="{{ $product->total_stock }}">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M12 20h9"></path>
 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -85,6 +92,7 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
 </div>
                     @endforeach
 </div>
+<p id="goods-empty-message" style="display:none; font-size:19px; color:#555; margin-top:16px;">Ничего не найдено.</p>
             @endif
 </div>
 
@@ -146,6 +154,12 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
 <input type="text" inputmode="numeric" id="edit-markup" name="markup" class="number-spaced" required>
 </div>
 
+{{-- НОВОЕ ПОЛЕ: Количество --}}
+<div>
+<label for="edit-quantity">Количество</label>
+<input type="text" inputmode="numeric" id="edit-quantity" name="quantity" class="number-spaced" required placeholder="Введите количество">
+</div>
+
 <div>
 <label for="edit-unit_id">Единица измерения</label>
 <select id="edit-unit_id" name="unit_id">
@@ -176,6 +190,7 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
         document.getElementById('edit-unit_id').value = btn.dataset.unitId || '';
         document.getElementById('edit-cost_price').value = formatSpaced(btn.dataset.costPrice);
         document.getElementById('edit-markup').value = formatSpaced(btn.dataset.markup);
+        document.getElementById('edit-quantity').value = formatSpaced(btn.dataset.totalStock || 0);
         document.getElementById('edit-image').value = '';
 
         const imageWrap = document.getElementById('edit-current-image-wrap');
@@ -198,7 +213,6 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
         if (e.target === this) closeEditProductModal();
     });
 
-    // Форматирование чисел пробелами прямо во время ввода
     document.querySelectorAll('#edit-product-form .number-spaced').forEach(function (input) {
         input.addEventListener('input', function () {
             const raw = input.value.replace(/\D/g, '');
@@ -206,16 +220,13 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
         });
     });
 
-    // Перед отправкой — убираем пробелы, чтобы в БД ушло чистое число
     document.getElementById('edit-product-form').addEventListener('submit', function () {
-        ['edit-cost_price', 'edit-markup'].forEach(function (id) {
+        ['edit-cost_price', 'edit-markup', 'edit-quantity'].forEach(function (id) {
             const el = document.getElementById(id);
             el.value = el.value.replace(/\s/g, '');
         });
     });
 
-    // Подтверждение перед удалением (без прямой подстановки текста в inline-JS,
-    // чтобы апострофы/кавычки в названии товара не ломали скрипт)
     document.querySelectorAll('.delete-product-form').forEach(function (form) {
         form.addEventListener('submit', function (e) {
             const title = form.dataset.title || 'этот товар';
@@ -224,5 +235,28 @@ data-image="{{ $product->image ? asset('storage/' . $product->image) : '' }}">
             }
         });
     });
+
+    // --- Живой клиентский поиск: без сервера, без задержек ---
+    const goodsSearchInput = document.getElementById('goods-search-input');
+    if (goodsSearchInput) {
+        const productCards = document.querySelectorAll('.product-card');
+        const emptyMessage = document.getElementById('goods-empty-message');
+
+        goodsSearchInput.addEventListener('input', function () {
+            const query = goodsSearchInput.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            productCards.forEach(function (card) {
+                const isMatch = card.dataset.search.includes(query);
+                card.style.display = isMatch ? '' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            if (emptyMessage) {
+                emptyMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        });
+    }
 </script>
+
 @endsection

@@ -69,7 +69,7 @@
 
             <div>
                 <label for="title">Название</label>
-                <input type="text" id="title" name="title" value="{{ old('title') }}" placeholder="Например, Колодки Bosch F1" required>
+                <input type="text" id="title" name="title" value="{{ old('title') }}" placeholder="Поиск" required>
             </div>
 
             <div>

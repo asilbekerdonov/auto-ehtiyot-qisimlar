@@ -16,13 +16,25 @@ class GoodsController extends Controller
         $cars = Car::orderBy('title')->get();
         $units = Unit::orderBy('title')->get();
         $selectedCategoryId = $request->query('category');
+        $search = trim((string) $request->query('search', ''));
 
-        // with('category', 'quantities') — грузим связи одним доп. запросом каждая,
-        // а не по одному запросу на каждый товар (это и есть защита от N+1)
         $products = Product::with(['category', 'quantities'])
             ->when($selectedCategoryId, fn ($query) => $query->where('category_id', $selectedCategoryId))
+            ->when($search !== '', fn ($query) => $query->where('title', 'like', '%' . $search . '%'))
             ->orderBy('title')
             ->get();
+
+        // Добавляем total_stock к каждому продукту
+        $products->each(function ($product) {
+            $product->total_stock = $product->quantities->sum('quantity');
+        });
+
+        if ($request->ajax()) {
+            return view('partials.goods-products', [
+                'products' => $products,
+                'search' => $search,
+            ]);
+        }
 
         return view('pages.goods', [
             'categories' => $categories,
@@ -30,6 +42,7 @@ class GoodsController extends Controller
             'units' => $units,
             'products' => $products,
             'selectedCategoryId' => $selectedCategoryId,
+            'search' => $search,
         ]);
     }
 }
