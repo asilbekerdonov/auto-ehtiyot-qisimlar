@@ -92,7 +92,27 @@
                     @endforeach
                 </select>
             </div>
+   
+        <div>
+            <label for="position_id">Позиция (необязательно)</label>
+            <select id="position_id" name="position_id">
+                <option value="">Не указано</option>
+                @foreach ($positions as $position)
+                    <option value="{{ $position->id }}" @selected(old('position_id') == $position->id)>{{ $position->title }}</option>
+                @endforeach
+            </select>
+        </div>
 
+      
+        <div>
+            <label for="color_id">Цвет (необязательно)</label>
+            <select id="color_id" name="color_id">
+                <option value="">Не указано</option>
+                @foreach ($colors as $color)
+                    <option value="{{ $color->id }}" @selected(old('color_id') == $color->id)>{{ $color->title }}</option>
+                @endforeach
+            </select>
+        </div>
             <div>
                 <label for="cost_price">Себестоимость</label>
                 <input type="text" inputmode="numeric" id="cost_price" name="cost_price" value="{{ old('cost_price') }}" class="number-spaced" placeholder="45 000" required>
@@ -199,7 +219,7 @@
             btn.addEventListener('click', () => showPanel(btn.dataset.tab));
         });
 
-        showPanel('{{ $errors->has('warehouse_id') || $errors->has('quantity') || $errors->has('cost_price') ? 'product' : 'category' }}');
+       showPanel('{{ $errors->has('warehouse_id') || $errors->has('quantity') || $errors->has('cost_price') || $errors->has('position_id') || $errors->has('color_id') ? 'product' : 'category' }}');
 
         // --- Форматирование чисел пробелами (400000 -> 400 000) ---
         function formatWithSpaces(value) {

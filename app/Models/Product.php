@@ -10,6 +10,8 @@ class Product extends Model
 {
     protected $fillable = [
         'category_id',
+        'position_id',
+        'color_id',
         'car_id',
         'unit_id',
         'title',
@@ -57,5 +59,14 @@ class Product extends Model
     public function getTotalStockAttribute(): int
     {
         return $this->quantities->sum('quantity');
+    }
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
+    }
+
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
     }
 }

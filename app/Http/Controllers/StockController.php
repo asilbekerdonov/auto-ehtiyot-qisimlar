@@ -40,4 +40,23 @@ class StockController extends Controller
             'stockItems' => $stockItems,
         ]);
     }
+    public function update(Request $request, Quantity $quantity)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:0',
+        ]);
+
+        $quantity->update([
+            'quantity' => $request->input('quantity'),
+        ]);
+
+        return redirect()->back()->with('success', 'Количество обновлено');
+    }
+
+    public function destroy(Quantity $quantity)
+    {
+        $quantity->delete();
+
+        return redirect()->back()->with('success', 'Товар удалён со склада');
+    }
 }

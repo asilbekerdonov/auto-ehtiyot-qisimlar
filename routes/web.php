@@ -69,4 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     });
+
+    Route::put('/stock/{quantity}', [StockController::class, 'update'])->name('stock.update');
+    Route::delete('/stock/{quantity}', [StockController::class, 'destroy'])->name('stock.destroy');
 });

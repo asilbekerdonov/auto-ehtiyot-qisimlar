@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Warehouse;
+use App\Services\ProductStockService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,9 @@ use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
     /**
-     * Создание нового товара
+     * Создание нового товара с использованием ProductStockService
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ProductStockService $stockService): RedirectResponse
     {
         // На фронте цифры показываются с пробелами (400 000) для читаемости,
         // здесь убираем пробелы перед валидацией/сохранением — в БД пробелов быть не должно
@@ -31,13 +32,15 @@ class ProductController extends Controller
             'car_id' => ['nullable', 'exists:cars,id'],
             'unit_id' => ['nullable', 'exists:units,id'],
             'cost_price' => ['required', 'numeric', 'min:0'],
+            'position_id' => 'nullable|exists:positions,id',
+            'color_id' => 'nullable|exists:colors,id',
             'markup' => ['required', 'numeric', 'min:0'],
             'warehouse_id' => ['required', 'exists:warehouses,id'],
             'quantity' => ['required', 'integer', 'min:0'],
             'image' => ['nullable', 'image', 'max:4096'], // до 4 МБ
         ]);
 
-        DB::transaction(function () use ($data, $request) {
+        DB::transaction(function () use ($data, $request, $stockService) {
             $imagePath = null;
 
             if ($request->hasFile('image')) {
@@ -45,30 +48,27 @@ class ProductController extends Controller
                 $imagePath = $request->file('image')->store('products', 'public');
             }
 
-            $product = Product::create([
+            // Используем ProductStockService для поиска или создания товара
+            $product = $stockService->findOrCreateProduct([
                 'title' => $data['title'],
                 'category_id' => $data['category_id'],
                 'car_id' => $data['car_id'] ?? null,
+                'position_id' => $data['position_id'] ?? null,
+                'color_id' => $data['color_id'] ?? null,
                 'unit_id' => $data['unit_id'] ?? null,
                 'cost_price' => $data['cost_price'],
                 'markup' => $data['markup'],
                 'image' => $imagePath,
             ]);
 
-            // Остаток на выбранном складе создаётся/обновляется той же операцией
-            Quantity::updateOrCreate(
-                [
-                    'warehouse_id' => $data['warehouse_id'],
-                    'product_id' => $product->id,
-                ],
-                [
-                    'quantity' => $data['quantity'],
-                ]
-            );
+            // Добавляем количество на склад через сервис (прибавляет к существующему)
+            $stockService->addStock($product, (int) $data['warehouse_id'], (int) $data['quantity']);
         });
 
         return back()->with('success', 'Товар добавлен');
     }
+
+    // Остальные методы (update, destroy) остаются без изменений
 
     /**
      * Обновление карточки товара из модального окна "Изменить" на странице Товары.
@@ -89,9 +89,11 @@ class ProductController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
             'car_id' => ['nullable', 'exists:cars,id'],
             'unit_id' => ['nullable', 'exists:units,id'],
+            'color_id' => 'nullable|exists:colors,id',
+            'position_id' => 'nullable|exists:positions,id',
             'cost_price' => ['required', 'numeric', 'min:0'],
             'markup' => ['required', 'numeric', 'min:0'],
-            'quantity' => ['nullable', 'integer', 'min:0'], // Добавлено поле quantity
+            'quantity' => ['nullable', 'integer', 'min:0'], 
             'image' => ['nullable', 'image', 'max:4096'],
         ]);
 
