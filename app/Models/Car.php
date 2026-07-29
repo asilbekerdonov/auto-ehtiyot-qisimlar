@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Car extends Model
 {
-    protected $fillable = ['title'];
+    protected $fillable = ['title', 'image'];
 
     public function products(): HasMany
     {

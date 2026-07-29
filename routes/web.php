@@ -9,7 +9,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\SalesController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -72,4 +72,16 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/stock/{quantity}', [StockController::class, 'update'])->name('stock.update');
     Route::delete('/stock/{quantity}', [StockController::class, 'destroy'])->name('stock.destroy');
+     
+ 
+    Route::prefix('sales')->name('sales.')->group(function () {
+        Route::get('/', [SalesController::class, 'selectCar'])->name('cars');
+        Route::get('/cars/{car}', [SalesController::class, 'carParts'])->name('parts');
+        Route::post('/cart/add', [SalesController::class, 'addToCart'])->name('cart.add');
+        Route::get('/cart', [SalesController::class, 'cart'])->name('cart');
+        Route::delete('/cart/{key}', [SalesController::class, 'removeFromCart'])->name('cart.remove');
+        Route::post('/checkout', [SalesController::class, 'checkout'])->name('checkout');
+    });
+ 
+
 });

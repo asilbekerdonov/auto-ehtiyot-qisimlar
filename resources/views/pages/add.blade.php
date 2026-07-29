@@ -180,31 +180,44 @@
         </div>
     </div>
 
-    {{-- Марка авто --}}
-    <div data-panel="car" style="border:2px solid #024989; border-radius:10px; padding:24px; display:none;">
-        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Марки авто</div>
 
-        <form method="POST" action="{{ route('cars.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
-            @csrf
+{{-- Марка авто --}}
+<div data-panel="car" style="border:2px solid #024989; border-radius:10px; padding:24px; display:none;">
+    <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Марки авто</div>
+
+    <form method="POST" action="{{ route('cars.store') }}" enctype="multipart/form-data" style="display:grid; gap:18px; max-width:520px; margin-bottom:24px;">
+        @csrf
+        <div>
+            <label for="car_image">Фото марки авто</label>
+            <input type="file" id="car_image" name="image" accept="image/*" style="width:100%; font-size:17px; padding:10px 0;">
+        </div>
+
+        <div style="display:flex; gap:12px;">
             <input type="text" name="title" placeholder="Например, Chevrolet Cobalt" required style="flex:1;">
             <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
-        </form>
+        </div>
+    </form>
 
-        <div>
-            @forelse ($cars as $car)
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
-                    <span>{{ $car->title }}</span>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+        @forelse ($cars as $car)
+            <div style="border:2px solid #024989; border-radius:12px; overflow:hidden; background:#fff;">
+                <img src="{{ $car->image ? asset('storage/' . $car->image) : 'https://placehold.co/200x150/e8f0f7/024989?text=Фото+авто' }}" 
+                     alt="{{ $car->title }}"
+                     style="width:100%; height:120px; object-fit:cover; background:#e8f0f7;">
+                <div style="padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:17px; font-weight:500;">{{ $car->title }}</span>
                     <form method="POST" action="{{ route('cars.destroy', $car) }}" onsubmit="return confirm('Удалить марку «{{ $car->title }}»?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
+                        <button type="submit" style="padding:6px 14px; font-size:14px; border-radius:6px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
                     </form>
                 </div>
-            @empty
-                <p style="font-size:18px; color:#555;">Марок пока нет.</p>
-            @endforelse
-        </div>
+            </div>
+        @empty
+            <p style="font-size:18px; color:#555; grid-column:1/-1;">Марок пока нет.</p>
+        @endforelse
     </div>
+</div>
 
     <script>
         // --- Переключение вкладок ---
