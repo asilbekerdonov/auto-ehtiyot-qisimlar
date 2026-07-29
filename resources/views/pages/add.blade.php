@@ -23,40 +23,14 @@
 
     {{-- Быстрые вкладки --}}
     <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
-        <button type="button" data-tab="category" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Категория</button>
         <button type="button" data-tab="product" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Товар</button>
+        <button type="button" data-tab="category" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Категория</button>
         <button type="button" data-tab="warehouse" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Склад</button>
         <button type="button" data-tab="car" class="tile tab-btn" style="font-size:18px; border:none; cursor:pointer;">+ Марка авто</button>
     </div>
 
-    {{-- Категория --}}
-    <div data-panel="category" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px;">
-        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Категории</div>
-
-        <form method="POST" action="{{ route('categories.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
-            @csrf
-            <input type="text" name="title" placeholder="Название категории" required style="flex:1;">
-            <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
-        </form>
-
-        <div>
-            @forelse ($categories as $category)
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
-                    <span>{{ $category->title }}</span>
-                    <form method="POST" action="{{ route('categories.destroy', $category) }}" onsubmit="return confirm('Удалить категорию «{{ $category->title }}»?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
-                    </form>
-                </div>
-            @empty
-                <p style="font-size:18px; color:#555;">Категорий пока нет.</p>
-            @endforelse
-        </div>
-    </div>
-
     {{-- Товар --}}
-    <div data-panel="product" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px; display:none;">
+    <div data-panel="product" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px;">
         <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Добавить товар</div>
 
         <form id="product-form" method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data" style="display:grid; gap:18px; max-width:460px;">
@@ -93,26 +67,26 @@
                 </select>
             </div>
    
-        <div>
-            <label for="position_id">Позиция (необязательно)</label>
-            <select id="position_id" name="position_id">
-                <option value="">Не указано</option>
-                @foreach ($positions as $position)
-                    <option value="{{ $position->id }}" @selected(old('position_id') == $position->id)>{{ $position->title }}</option>
-                @endforeach
-            </select>
-        </div>
+            <div>
+                <label for="position_id">Позиция (необязательно)</label>
+                <select id="position_id" name="position_id">
+                    <option value="">Не указано</option>
+                    @foreach ($positions as $position)
+                        <option value="{{ $position->id }}" @selected(old('position_id') == $position->id)>{{ $position->title }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-      
-        <div>
-            <label for="color_id">Цвет (необязательно)</label>
-            <select id="color_id" name="color_id">
-                <option value="">Не указано</option>
-                @foreach ($colors as $color)
-                    <option value="{{ $color->id }}" @selected(old('color_id') == $color->id)>{{ $color->title }}</option>
-                @endforeach
-            </select>
-        </div>
+            <div>
+                <label for="color_id">Цвет (необязательно)</label>
+                <select id="color_id" name="color_id">
+                    <option value="">Не указано</option>
+                    @foreach ($colors as $color)
+                        <option value="{{ $color->id }}" @selected(old('color_id') == $color->id)>{{ $color->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <div>
                 <label for="cost_price">Себестоимость</label>
                 <input type="text" inputmode="numeric" id="cost_price" name="cost_price" value="{{ old('cost_price') }}" class="number-spaced" placeholder="45 000" required>
@@ -152,6 +126,32 @@
 
             <button type="submit" class="btn-primary">Сохранить</button>
         </form>
+    </div>
+
+    {{-- Категория --}}
+    <div data-panel="category" style="border:2px solid #024989; border-radius:10px; padding:24px; margin-bottom:20px; display:none;">
+        <div style="font-size:22px; font-weight:600; color:#024989; margin-bottom:20px;">Категории</div>
+
+        <form method="POST" action="{{ route('categories.store') }}" style="display:flex; gap:12px; max-width:520px; margin-bottom:24px;">
+            @csrf
+            <input type="text" name="title" placeholder="Название категории" required style="flex:1;">
+            <button type="submit" class="btn-primary" style="padding:14px 24px;">Добавить</button>
+        </form>
+
+        <div>
+            @forelse ($categories as $category)
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e2e2; font-size:19px;">
+                    <span>{{ $category->title }}</span>
+                    <form method="POST" action="{{ route('categories.destroy', $category) }}" onsubmit="return confirm('Удалить категорию «{{ $category->title }}»?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="padding:8px 16px; font-size:16px; border-radius:8px; border:2px solid #a32d2d; background:#fff; color:#a32d2d; cursor:pointer;">Удалить</button>
+                    </form>
+                </div>
+            @empty
+                <p style="font-size:18px; color:#555;">Категорий пока нет.</p>
+            @endforelse
+        </div>
     </div>
 
     {{-- Склад --}}
@@ -219,7 +219,9 @@
             btn.addEventListener('click', () => showPanel(btn.dataset.tab));
         });
 
-       showPanel('{{ $errors->has('warehouse_id') || $errors->has('quantity') || $errors->has('cost_price') || $errors->has('position_id') || $errors->has('color_id') ? 'product' : 'category' }}');
+        // По умолчанию показываем товары (или product, если есть ошибки)
+        const defaultTab = '{{ $errors->has('warehouse_id') || $errors->has('quantity') || $errors->has('cost_price') || $errors->has('position_id') || $errors->has('color_id') ? 'product' : 'product' }}';
+        showPanel(defaultTab);
 
         // --- Форматирование чисел пробелами (400000 -> 400 000) ---
         function formatWithSpaces(value) {
