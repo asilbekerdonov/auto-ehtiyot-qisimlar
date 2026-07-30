@@ -1,4 +1,4 @@
-`<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,8 +11,10 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('car_id')->constrained()->nullOnDelete();
-            $table->foreignId('unit_id')->constrained()->nullOnDelete();
+            $table->foreignId('car_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('position_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('color_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('unit_id')->nullable()->constrained()->nullOnDelete();
             $table->string('image')->nullable();
             $table->string('title');
             $table->decimal('cost_price', 12, 2);

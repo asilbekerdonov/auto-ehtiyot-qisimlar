@@ -72,7 +72,22 @@
                     @foreach ($stockItems as $item)
                         <div class="stock-item" data-search="{{ Str::lower($item->product->title) }}" style="padding:14px 8px; border-bottom:1px solid #e2e2e2; font-size:19px;">
                             {{ $item->product->title }}
-                            <div style="font-size:13px; color:#777; margin-top:2px;">{{ $item->product->category->title ?? 'Без категории' }}</div>
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:4px;">
+                                @if ($item->product->car)
+                                    <span style="font-size:17px; color:#0a6b3a;">{{ $item->product->car->title }}</span>
+                                @endif
+                                @if ($item->product->position)
+                                    <span style="font-size:17px; background:#e8f0f7; color:#024989; padding:1px 10px; border-radius:6px; font-weight:500;">
+                                        {{ $item->product->position->title }}
+                                    </span>
+                                @endif
+                                @if ($item->product->color)
+                                    <span style="font-size:17px; background:#e8f0f7; color:#024989; padding:1px 10px; border-radius:6px; font-weight:500;">
+                                        {{ $item->product->color->title }}
+                                    </span>
+                                @endif
+                                <span style="font-size:17px; color:#777;">{{ $item->product->category->title ?? 'Без категории' }}</span>
+                            </div>
                         </div>
                         <div class="stock-item" data-search="{{ Str::lower($item->product->title) }}" style="padding:14px 8px; border-bottom:1px solid #e2e2e2; font-size:19px; font-weight:500;">
                             {{ $item->quantity }} шт

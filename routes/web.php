@@ -11,6 +11,8 @@ use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\DebtorController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Receiptcontroller;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,4 +89,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/debtors', [DebtorController::class, 'index'])->name('debtors');
     Route::post('/debtors/{customer}/pay', [DebtorController::class, 'pay'])->name('debtors.pay');
     Route::patch('/sales/cart/{key}', [SalesController::class, 'updateCartItem'])->name('sales.cart.update');
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+ 
+    Route::put('/stock/{quantity}', [StockController::class, 'update'])->name('stock.update');
+    
+    Route::prefix('receipts')->name('receipts.')->group(function () {
+        Route::get('/', [ReceiptController::class, 'selectCar'])->name('cars');
+        Route::get('/cars/{car}', [ReceiptController::class, 'carParts'])->name('parts');
+        Route::post('/add', [ReceiptController::class, 'addStock'])->name('add');
+    });
+
+
 });

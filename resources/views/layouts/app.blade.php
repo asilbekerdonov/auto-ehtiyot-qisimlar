@@ -175,6 +175,7 @@
             <a href="{{ url('/debtors') }}" class="{{ request()->routeIs('debtors') ? 'active' : '' }}">Должники</a>
             <a href="{{ url('/sales') }}" class="{{ request()->routeIs('sales') ? 'active' : '' }}">Продажи</a>
             <a href="{{ url('/analytics') }}" class="{{ request()->routeIs('analytics') ? 'active' : '' }}">Аналитика</a>
+            <a href="{{ route('receipts.cars') }}" class="{{ request()->routeIs('receipts') ? 'active' : '' }}">Поступление</a>
             <a href="{{ route('add') }}" class="{{ request()->routeIs('add') ? 'active' : '' }}">Добавить</a>
         </div>
     @endunless
