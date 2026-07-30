@@ -7,32 +7,42 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Quantity;
 use App\Models\Warehouse;
+use App\Services\ReceiptService;
+use App\Http\Requests\Receipt\AddStockRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class ReceiptController extends Controller
 {
-    // Экран 1: выбор машины (тот же паттерн, что и в "Продажах")
+    protected ReceiptService $receiptService;
+
+    public function __construct(ReceiptService $receiptService)
+    {
+        $this->receiptService = $receiptService;
+    }
+
+    /**
+     * Экран 1: выбор машины
+     */
     public function selectCar()
     {
         $cars = Car::orderBy('title')->get();
 
-        return view('pages.receipts-cars', [
-            'cars' => $cars,
-        ]);
+        return view('pages.receipts-cars', compact('cars'));
     }
 
-    // Экран 2: список запчастей машины с остатками по каждому складу + карандаш/плюсик
+    /**
+     * Экран 2: список запчастей машины с остатками по складам
+     */
     public function carParts(Request $request, Car $car)
     {
         $categories = Category::orderBy('title')->get();
         $selectedCategoryId = $request->query('category');
         $warehouses = Warehouse::orderBy('title')->get();
 
-        // with(['category', 'quantities']) — защита от N+1:
-        // категория и остатки по всем складам для каждого товара грузятся одним доп. запросом
         $products = Product::with(['category', 'quantities'])
             ->where('car_id', $car->id)
-            ->when($selectedCategoryId, fn ($q) => $q->where('category_id', $selectedCategoryId))
+            ->when($selectedCategoryId, fn($q) => $q->where('category_id', $selectedCategoryId))
             ->orderBy('title')
             ->get();
 
@@ -45,26 +55,18 @@ class ReceiptController extends Controller
         ]);
     }
 
-    // Плюсик: прибавить количество к текущему остатку (создаёт строку в quantities, если её ещё не было)
-    public function addStock(Request $request)
+    /**
+     * Добавить поступление товара на склад
+     */
+    public function addStock(AddStockRequest $request): RedirectResponse
     {
-        $request->merge([
-            'quantity' => str_replace(' ', '', (string) $request->input('quantity')),
-        ]);
+        $data = $request->validated();
 
-        $data = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'warehouse_id' => ['required', 'exists:warehouses,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $quantity = Quantity::firstOrNew([
-            'product_id' => $data['product_id'],
-            'warehouse_id' => $data['warehouse_id'],
-        ]);
-
-        $quantity->quantity = ($quantity->quantity ?? 0) + $data['quantity'];
-        $quantity->save();
+        $this->receiptService->addStock(
+            $data['product_id'],
+            $data['warehouse_id'],
+            $data['quantity']
+        );
 
         return back()->with('success', 'Поступление добавлено: +' . $data['quantity'] . ' шт');
     }

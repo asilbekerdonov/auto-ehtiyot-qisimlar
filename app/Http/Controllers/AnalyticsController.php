@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AnalyticsController extends Controller
 {
@@ -24,11 +25,35 @@ class AnalyticsController extends Controller
             ? Carbon::parse($request->query('month') . '-01')
             : $selectedDate->copy()->startOfMonth();
 
-        // --- Товары за выбранный день ---
-        // with('items.product.car') — грузим позиции, товары и их машины одним доп. запросом каждая,
-        // а не отдельным запросом на каждую продажу/товар (защита от N+1)
+        // --- 1. Товары за выбранный день ---
+        $dayData = $this->getDayData($selectedDate);
+
+        // --- 2. Дни с продажами в выбранном месяце ---
+        $daysWithSalesInMonth = $this->getDaysWithSalesInMonth($selectedMonth);
+
+        // --- 3. История за последние 12 месяцев ---
+        $months = $this->getMonthsHistory();
+
+        return view('pages.analytics', [
+            'selectedDate' => $selectedDate,
+            'selectedMonth' => $selectedMonth,
+            'monthLabel' => self::RU_MONTHS[$selectedMonth->month] . ' ' . $selectedMonth->year,
+            'paidItems' => $dayData['paidItems'],
+            'debtItems' => $dayData['debtItems'],
+            'totalPaid' => $dayData['totalPaid'],
+            'totalDebt' => $dayData['totalDebt'],
+            'daysWithSalesInMonth' => $daysWithSalesInMonth,
+            'months' => $months,
+        ]);
+    }
+
+    /**
+     * Получить данные за день (продажи и долги)
+     */
+    private function getDayData(Carbon $date): array
+    {
         $sales = Sale::with(['items.product.car', 'customer'])
-            ->whereDate('created_at', $selectedDate)
+            ->whereDate('created_at', $date)
             ->get();
 
         $paidItems = collect();
@@ -47,20 +72,35 @@ class AnalyticsController extends Controller
             }
         }
 
-        // --- Дни с продажами в выбранном месяце (для точек в календаре) ---
-        $monthSalesForCalendar = Sale::whereBetween('created_at', [
-            $selectedMonth->copy()->startOfMonth(),
-            $selectedMonth->copy()->endOfMonth(),
-        ])->get();
+        return [
+            'paidItems' => $paidItems,
+            'debtItems' => $debtItems,
+            'totalPaid' => $paidItems->sum(fn($item) => $item->quantity * $item->price_per_unit),
+            'totalDebt' => $debtItems->sum(fn($item) => $item->quantity * $item->price_per_unit),
+        ];
+    }
 
-        $daysWithSalesInMonth = $monthSalesForCalendar
-            ->map(fn ($sale) => (int) $sale->created_at->format('j'))
+    /**
+     * Получить дни с продажами в месяце
+     */
+    private function getDaysWithSalesInMonth(Carbon $month): array
+    {
+        return Sale::whereBetween('created_at', [
+                $month->copy()->startOfMonth(),
+                $month->copy()->endOfMonth(),
+            ])
+            ->get()
+            ->map(fn($sale) => (int) $sale->created_at->format('j'))
             ->unique()
             ->values()
             ->toArray();
+    }
 
-        // --- История за последние 12 месяцев, сворачиваемая ---
-        // Один запрос на весь год, дальше группируем в PHP — не 12 отдельных запросов
+    /**
+     * Получить историю за последние 12 месяцев
+     */
+    private function getMonthsHistory(): array
+    {
         $yearStart = Carbon::now()->subMonths(11)->startOfMonth();
         $yearSales = Sale::whereBetween('created_at', [$yearStart, Carbon::now()->endOfMonth()])->get();
 
@@ -70,17 +110,10 @@ class AnalyticsController extends Controller
         for ($i = 0; $i < 12; $i++) {
             $monthStart = $cursor->copy();
 
-            $salesInMonth = $yearSales->filter(fn ($sale) =>
+            $salesInMonth = $yearSales->filter(fn($sale) =>
                 $sale->created_at->month === $monthStart->month
                 && $sale->created_at->year === $monthStart->year
             );
-
-            $daysWithSales = $salesInMonth
-                ->map(fn ($sale) => (int) $sale->created_at->format('j'))
-                ->unique()
-                ->sort()
-                ->values()
-                ->toArray();
 
             $months[] = [
                 'key' => $monthStart->format('Y-m'),
@@ -88,22 +121,17 @@ class AnalyticsController extends Controller
                 'total' => $salesInMonth->sum('total_amount'),
                 'sales_count' => $salesInMonth->count(),
                 'days_in_month' => $monthStart->daysInMonth,
-                'days_with_sales' => $daysWithSales,
+                'days_with_sales' => $salesInMonth
+                    ->map(fn($sale) => (int) $sale->created_at->format('j'))
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->toArray(),
             ];
 
             $cursor->subMonth();
         }
 
-        return view('pages.analytics', [
-            'selectedDate' => $selectedDate,
-            'selectedMonth' => $selectedMonth,
-            'monthLabel' => self::RU_MONTHS[$selectedMonth->month] . ' ' . $selectedMonth->year,
-            'paidItems' => $paidItems,
-            'debtItems' => $debtItems,
-            'totalPaid' => $paidItems->sum(fn ($item) => $item->quantity * $item->price_per_unit),
-            'totalDebt' => $debtItems->sum(fn ($item) => $item->quantity * $item->price_per_unit),
-            'daysWithSalesInMonth' => $daysWithSalesInMonth,
-            'months' => $months,
-        ]);
+        return $months;
     }
 }

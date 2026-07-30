@@ -5,32 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Quantity;
 use App\Models\Warehouse;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Http\Requests\Stock\UpdateRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class StockController extends Controller
 {
+    protected ProductRepositoryInterface $productRepository;
+
+    public function __construct(ProductRepositoryInterface $productRepository)
+    {
+        $this->productRepository = $productRepository;
+    }
+
     public function index(Request $request)
     {
         $warehouses = Warehouse::orderBy('title')->get();
         $selectedWarehouseId = $request->query('warehouse', optional($warehouses->first())->id);
         
-        // Получаем категории для фильтрации
         $categories = Category::orderBy('title')->get();
         $selectedCategoryId = $request->query('category');
         
-        $stockItems = collect();
-        
-        if ($selectedWarehouseId) {
-            $stockItems = Quantity::with(['product', 'product.category'])
-                ->where('warehouse_id', $selectedWarehouseId)
-                ->when($selectedCategoryId, function ($query) use ($selectedCategoryId) {
-                    $query->whereHas('product', function ($q) use ($selectedCategoryId) {
-                        $q->where('category_id', $selectedCategoryId);
-                    });
-                })
-                ->orderBy('id')
-                ->get();
-        }
+        $stockItems = $this->getStockItems($selectedWarehouseId, $selectedCategoryId);
         
         return view('pages.stock', [
             'warehouses' => $warehouses,
@@ -40,23 +37,39 @@ class StockController extends Controller
             'stockItems' => $stockItems,
         ]);
     }
-    public function update(Request $request, Quantity $quantity)
+
+    public function update(UpdateRequest $request, Quantity $quantity): RedirectResponse
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:0',
-        ]);
+        $quantity->update($request->validated());
 
-        $quantity->update([
-            'quantity' => $request->input('quantity'),
-        ]);
-
-        return redirect()->back()->with('success', 'Количество обновлено');
+        return back()->with('success', 'Количество обновлено');
     }
 
-    public function destroy(Quantity $quantity)
+    public function destroy(Quantity $quantity): RedirectResponse
     {
         $quantity->delete();
 
-        return redirect()->back()->with('success', 'Товар удалён со склада');
+        return back()->with('success', 'Товар удалён со склада');
+    }
+
+    /**
+     * Получить товары на складе с фильтрацией
+     */
+    private function getStockItems($warehouseId, $categoryId = null)
+    {
+        if (!$warehouseId) {
+            return collect();
+        }
+
+        $query = Quantity::with(['product', 'product.category', 'product.car', 'product.position', 'product.color'])
+            ->where('warehouse_id', $warehouseId);
+
+        if ($categoryId) {
+            $query->whereHas('product', function ($q) use ($categoryId) {
+                $q->where('category_id', $categoryId);
+            });
+        }
+
+        return $query->orderBy('id')->get();
     }
 }

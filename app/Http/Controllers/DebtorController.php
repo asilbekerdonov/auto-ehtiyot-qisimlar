@@ -13,10 +13,9 @@ class DebtorController extends Controller
         // sales подгружаем полностью (не только "долг"), чтобы посчитать
         // дату последней продажи любого статуса.
         $debtors = Customer::whereHas('sales', fn ($query) => $query->where('status', 'долг'))
-            ->with('sales')
+            ->with(['sales' => fn ($query) => $query->where('status', 'долг')])
             ->orderBy('name')
             ->get();
-
         return view('pages.debtors', compact('debtors'));
     }
 

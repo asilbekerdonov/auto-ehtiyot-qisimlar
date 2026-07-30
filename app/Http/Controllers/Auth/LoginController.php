@@ -22,7 +22,7 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            // Изменено с /dashboard на /goods
+          
             return redirect()->intended('/goods');
         }
 

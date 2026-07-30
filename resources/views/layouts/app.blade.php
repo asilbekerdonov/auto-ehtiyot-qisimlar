@@ -40,7 +40,7 @@
             background: #f4f8fb;
         }
 
-        /* Навбар (скрыт на dashboard) */
+        /* Навбар */
         .navbar {
             display: flex;
             flex-wrap: wrap;
@@ -68,7 +68,7 @@
             padding: 32px;
         }
 
-        /* Плитки (переиспользуются на dashboard и в "Добавить") */
+        /* Плитки */
         .tile {
             background: #024989;
             color: #ffffff;
@@ -122,7 +122,7 @@
             background: #013a6e;
         }
 
-        /* Кнопки-иконки на карточках (изменить / удалить) */
+        /* Кнопки-иконки */
         .icon-btn {
             width: 44px;
             height: 44px;
@@ -140,13 +140,13 @@
             height: 22px;
         }
         .icon-btn--edit {
-            color: #b8860b; /* тёмно-жёлтый — на белом фоне так контрастнее, чем чистый жёлтый */
+            color: #b8860b;
         }
         .icon-btn--edit:hover {
             background: #fff8e1;
         }
         .icon-btn--delete {
-            color: #a32d2d; /* совпадает с цветом ошибок в общей палитре */
+            color: #a32d2d;
         }
         .icon-btn--delete:hover {
             background: #fdecea;
@@ -168,17 +168,15 @@
         </form>
     </div>
 
-    @unless(request()->routeIs('dashboard'))
-        <div class="navbar">
-            <a href="{{ route('goods') }}" class="{{ request()->routeIs('goods') ? 'active' : '' }}">Товары</a>
-            <a href="{{ route('stock') }}" class="{{ request()->routeIs('stock') ? 'active' : '' }}">Склад</a>
-            <a href="{{ url('/debtors') }}" class="{{ request()->routeIs('debtors') ? 'active' : '' }}">Должники</a>
-            <a href="{{ url('/sales') }}" class="{{ request()->routeIs('sales') ? 'active' : '' }}">Продажи</a>
-            <a href="{{ url('/analytics') }}" class="{{ request()->routeIs('analytics') ? 'active' : '' }}">Аналитика</a>
-            <a href="{{ route('receipts.cars') }}" class="{{ request()->routeIs('receipts') ? 'active' : '' }}">Поступление</a>
-            <a href="{{ route('add') }}" class="{{ request()->routeIs('add') ? 'active' : '' }}">Добавить</a>
-        </div>
-    @endunless
+    <div class="navbar">
+        <a href="{{ route('goods') }}" class="{{ request()->routeIs('goods') ? 'active' : '' }}">Товары</a>
+        <a href="{{ route('stock') }}" class="{{ request()->routeIs('stock') ? 'active' : '' }}">Склад</a>
+        <a href="{{ route('debtors.index') }}" class="{{ request()->routeIs('debtors*') ? 'active' : '' }}">Должники</a>
+        <a href="{{ route('sales.cars') }}" class="{{ request()->routeIs('sales*') ? 'active' : '' }}">Продажи</a>
+        <a href="{{ route('analytics') }}" class="{{ request()->routeIs('analytics') ? 'active' : '' }}">Аналитика</a>
+        <a href="{{ route('receipts.cars') }}" class="{{ request()->routeIs('receipts*') ? 'active' : '' }}">Поступление</a>
+        <a href="{{ route('add') }}" class="{{ request()->routeIs('add') ? 'active' : '' }}">Добавить</a>
+    </div>
 
     <div class="container">
         @yield('content')
