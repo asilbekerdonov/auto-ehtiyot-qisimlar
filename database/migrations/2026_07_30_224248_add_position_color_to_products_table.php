@@ -6,13 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->foreignId('position_id')->nullable()->after('category_id')->constrained()->nullOnDelete();
+            $table->foreignId('position_id')->nullable()->after('unit_id')->constrained()->nullOnDelete();
             $table->foreignId('color_id')->nullable()->after('position_id')->constrained()->nullOnDelete();
         });
     }

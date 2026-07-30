@@ -12,13 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->foreignId('car_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('position_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('color_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained()->nullOnDelete();
             $table->string('image')->nullable();
             $table->string('title');
             $table->decimal('cost_price', 12, 2);
             $table->decimal('markup', 12, 2);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

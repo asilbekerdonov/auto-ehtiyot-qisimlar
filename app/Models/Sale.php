@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
-    protected $fillable = ['customer_id', 'status', 'total_amount'];
+    protected $fillable = ['customer_id', 'status', 'total_amount', 'created_at'];
 
     protected function casts(): array
     {
         return [
             'total_amount' => 'decimal:2',
+            'created_at' => 'datetime',
         ];
     }
 

@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes; 
 
 class Product extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'category_id',
         'position_id',
@@ -43,6 +45,11 @@ class Product extends Model
         return $this->belongsTo(Unit::class);
     }
 
+
+    public function saleItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\SaleItem::class);
+    }
     public function quantities(): HasMany
     {
         return $this->hasMany(Quantity::class);
