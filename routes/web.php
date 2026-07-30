@@ -10,6 +10,7 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\DebtorController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -82,6 +83,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/cart/{key}', [SalesController::class, 'removeFromCart'])->name('cart.remove');
         Route::post('/checkout', [SalesController::class, 'checkout'])->name('checkout');
     });
- 
-
+    
+    Route::get('/debtors', [DebtorController::class, 'index'])->name('debtors');
+    Route::post('/debtors/{customer}/pay', [DebtorController::class, 'pay'])->name('debtors.pay');
+    Route::patch('/sales/cart/{key}', [SalesController::class, 'updateCartItem'])->name('sales.cart.update');
 });

@@ -139,8 +139,9 @@ class SalesController extends Controller
         return back()->with('success', 'Товар убран из корзины');
     }
 
-    // Оформление продажи: создаёт Sale + SaleItems, списывает остатки,
-    // при статусе "долг" — создаёт клиента через мини-форму имя+телефон
+    // Оформление продажи: создаёт Sale + SaleItems, списывает остатки.
+    // Изменённые на странице корзины цены (торг) приходят прямо сюда, вместе
+    // с оформлением — отдельного запроса на сохранение цены больше нет.
     public function checkout(Request $request)
     {
         $cart = session(self::CART_SESSION_KEY, []);
@@ -149,11 +150,40 @@ class SalesController extends Controller
             return back()->withErrors(['cart' => 'Корзина пуста']);
         }
 
+        // цены на фронте показываются с пробелами (45 000) — убираем их перед валидацией
+        $request->merge([
+            'prices' => collect($request->input('prices', []))
+                ->map(fn ($value) => str_replace(' ', '', (string) $value))
+                ->all(),
+        ]);
+
         $data = $request->validate([
             'status' => ['required', 'in:оплачено,долг'],
             'customer_name' => ['required_if:status,долг', 'nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
+            'prices' => ['sometimes', 'array'],
+            'prices.*' => ['numeric', 'min:0'],
         ]);
+
+        $productIds = collect($cart)->pluck('product_id')->unique();
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        // применяем новые цены поверх того, что лежит в корзине,
+        // и заодно не даём продать ниже себестоимости
+        foreach ($cart as $key => &$row) {
+            if (array_key_exists($key, $data['prices'] ?? [])) {
+                $row['price_per_unit'] = $data['prices'][$key];
+            }
+
+            $product = $products->get($row['product_id']);
+
+            if ($product && $row['price_per_unit'] < $product->cost_price) {
+                return back()->withErrors([
+                    'prices.' . $key => 'Цена на «' . $product->title . '» не может быть ниже себестоимости (' . number_format($product->cost_price, 0, ',', ' ') . ' сум)',
+                ]);
+            }
+        }
+        unset($row);
 
         DB::transaction(function () use ($cart, $data) {
             $customerId = null;
