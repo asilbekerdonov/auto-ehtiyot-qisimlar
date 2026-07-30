@@ -17,6 +17,7 @@ Route::get('/', function () {
 
 // ==================== ПОДКЛЮЧАЕМ ФАЙЛЫ ====================
 require __DIR__.'/auth.php';
+require __DIR__.'/export.php';
 require __DIR__.'/pages.php';
 require __DIR__.'/categories.php';
 require __DIR__.'/warehouses.php';

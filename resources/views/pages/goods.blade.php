@@ -34,7 +34,11 @@
             <input type="text" id="goods-search-input"
                 placeholder="Например: буф — сразу покажет «Буфер» и похожие"
                 autocomplete="off" style="width:100%; margin-bottom:20px;">
-
+            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+                <a href="{{ route('goods.export') }}" class="btn-primary" style="text-decoration:none; display:inline-block; padding:12px 20px; font-size:17px;">
+                    Экспорт в Excel
+                </a>
+            </div>
             @if ($products->isEmpty())
                 <p style="font-size:19px; color:#555;">В этой категории пока нет товаров.</p>
             @else

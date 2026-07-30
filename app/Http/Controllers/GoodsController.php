@@ -10,7 +10,8 @@ use App\Models\Unit;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\Request;
 use App\Services\ProductStockService;
-
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProductsExport;
 class GoodsController extends Controller
 {
     protected ProductRepositoryInterface $productRepository;
@@ -69,5 +70,9 @@ class GoodsController extends Controller
         $stockService->addStock($product, (int) $data['warehouse_id'], (int) $data['quantity']);
 
         return redirect()->route('goods')->with('success', 'Товар сохранён');
+    }
+    public function export()
+    {
+        return Excel::download(new ProductsExport, 'товары.xlsx');
     }
 }
