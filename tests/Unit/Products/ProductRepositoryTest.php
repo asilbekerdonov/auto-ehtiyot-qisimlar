@@ -143,7 +143,7 @@ class ProductRepositoryTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertSoftDeleted('products', ['id' => $product->id]);
-        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        // $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 
     public function test_can_update_stock()
