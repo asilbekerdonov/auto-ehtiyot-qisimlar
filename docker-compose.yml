@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: autoparts_app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+      - storage_data:/var/www/html/storage
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - autoparts
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: autoparts_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - autoparts
+
+  db:
+    image: mysql:8.0
+    container_name: autoparts_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-auto}
+      MYSQL_USER: ${DB_USERNAME:-auto_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-root_secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - autoparts
+
+volumes:
+  db_data:
+  storage_data:
+
+networks:
+  autoparts:
+    driver: bridge
