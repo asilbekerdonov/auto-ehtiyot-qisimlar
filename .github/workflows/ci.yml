@@ -8,63 +8,6 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.3"
-          extensions: mbstring, zip, gd, bcmath, exif, pdo_sqlite
-          coverage: none
-
-      - name: Copy .env
-        run: cp .env.example .env
-
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: Generate app key
-        run: php artisan key:generate
-
-      - name: Clear cache and dump autoload
-        run: |
-          php artisan config:clear
-          php artisan route:clear
-          php artisan cache:clear
-          composer dump-autoload
-
-      - name: Create SQLite database for tests
-        run: touch database/database.sqlite
-
-      - name: Run migrations
-        run: php artisan migrate --force
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-
-      - name: Run tests
-        run: php artisan test
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-
-      - name: Check filename/class name match (PSR-4)
-        run: |
-          mismatch=0
-          while IFS= read -r -d '' file; do
-            class=$(basename "$file" .php)
-            if ! grep -q "class $class\b" "$file" && ! grep -q "interface $class\b" "$file"; then
-              echo "MISMATCH: $file does not contain 'class $class' or 'interface $class'"
-              mismatch=1
-            fi
-          done < <(find app -name "*.php" -print0)
-          exit $mismatch
-jobs:
-  test:
     runs-on: ubuntu-24.04
 
     steps:
@@ -86,6 +29,13 @@ jobs:
 
       - name: Generate app key
         run: php artisan key:generate
+
+      - name: Clear cache and dump autoload
+        run: |
+          php artisan config:clear
+          php artisan route:clear
+          php artisan cache:clear
+          composer dump-autoload
 
       - name: Create SQLite database for tests
         run: touch database/database.sqlite
