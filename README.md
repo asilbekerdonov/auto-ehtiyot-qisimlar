@@ -77,3 +77,25 @@ resources/views/pages/    # Blade-шаблоны
 tests/                     # PHPUnit
 ```
 
+
+## CI
+
+При каждом push/PR в `main` GitHub Actions прогоняет тесты на Ubuntu (Linux), не macOS — это важно, см. раздел ниже.
+
+Workflow (`.github/workflows/ci.yml`) выполняет:
+1. Установку зависимостей (`composer install`)
+2. Создание и миграцию тестовой SQLite-базы
+3. Очистку кеша и `composer dump-autoload`
+4. `php artisan test`
+5. Проверку соответствия имени файла и имени класса (PSR-4) в `app/`
+
+Проверить статус: вкладка [Actions](https://github.com/asilbekerdonov/auto-ehtiyot-qisimlar/actions).
+
+## Соглашения по именованию
+
+⚠️ **Важно для разработчиков на macOS/Windows.** Файловая система на этих ОС не чувствительна к регистру, а на Linux (в т.ч. в CI и на большинстве production-серверов) — чувствительна. Файл `receiptcontroller.php` и `ReceiptController.php` — это один и тот же файл на Mac, но два разных на Linux.
+
+Правила:
+- Имя файла класса должно **точно** совпадать с именем класса, включая регистр (PSR-4): `ReceiptController.php` → `class ReceiptController`.
+- Перед пушем проверяйте регистр новых файлов: `git ls-files | grep -i имяфайла`.
+- CI автоматически проверяет это на каждом прогоне (шаг "Check filename/class name match").
