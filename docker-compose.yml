@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./:/var/www/html
-      - storage_data:/var/www/html/storage
     env_file:
       - .env
     depends_on:
@@ -53,8 +52,6 @@ services:
 
 volumes:
   db_data:
-  storage_data:
 
 networks:
   autoparts:
-    driver: bridge
