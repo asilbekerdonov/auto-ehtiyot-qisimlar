@@ -23,7 +23,7 @@
 - `app/Models` — Eloquent-модели
 
 ## Модули
-
+|
 | Раздел | Что делает |
 |---|---|
 | Товары | Каталог: категория, марка авто, позиция, цвет, фото |
@@ -68,7 +68,7 @@ app/
 ├── Http/Controllers/    # Товары, Склад, Продажи, Должники, Аналитика, Поступления
 ├── Http/Requests/       # Валидация форм
 ├── Models/              # Product, Quantity, Sale, SaleItem, Customer...
-├── Repositories/         # Доступ к данным
+├── Repositories/         # Доступ к данным 
 └── Services/             # ProductStockService, SaleService, ReceiptService
 
 database/migrations/     # Схема БД
