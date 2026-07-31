@@ -39,7 +39,28 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
 
-    
+      - name: Clear cache and dump autoload
+        run: |
+          php artisan config:clear
+          php artisan route:clear
+          php artisan cache:clear
+          composer dump-autoload
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+      - name: Debug autoload
+        run: |
+          echo "--- classmap entry ---"
+          grep -n "ReceiptController" vendor/composer/autoload_classmap.php || echo "NOT FOUND IN CLASSMAP"
+          echo "--- files on disk ---"
+          find app -iname "*receipt*controller*"
+          echo "--- file content check ---"
+          head -20 app/Http/Controllers/ReceiptController.php
+          echo "--- class_exists check ---"
+          php -r "require 'vendor/autoload.php'; var_dump(class_exists('App\Http\Controllers\ReceiptController'));"
+          echo "--- routes ---"
+          php artisan route:list --path=receipts
 
       - name: Run tests
         run: php artisan test
