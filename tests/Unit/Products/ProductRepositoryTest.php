@@ -142,6 +142,7 @@ class ProductRepositoryTest extends TestCase
         $result = $this->repository->delete($product);
 
         $this->assertTrue($result);
+        $this->assertSoftDeleted('products', ['id' => $product->id]);
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 
