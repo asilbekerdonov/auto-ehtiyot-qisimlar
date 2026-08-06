@@ -2,84 +2,291 @@
 
 @section('title', $car->title . ' — Поступление')
 
+@section('styles')
+<style>
+.receipt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.receipt-back-link {
+    font-size: 18px;
+    color: #024989;
+    text-decoration: none;
+}
+.receipt-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #024989;
+}
+.alert-success {
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    background: #e6f4ea;
+    border: 2px solid #2e7d32;
+    color: #2e7d32;
+    border-radius: 10px;
+    font-size: 18px;
+}
+.alert-error {
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    background: #fdecea;
+    border: 2px solid #a32d2d;
+    color: #a32d2d;
+    border-radius: 10px;
+    font-size: 18px;
+}
+
+/* Категории + запчасти */
+.receipt-layout {
+    display: grid;
+    grid-template-columns: 25% 75%;
+    border: 2px solid #024989;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.receipt-categories {
+    background: #024989;
+    color: #fff;
+}
+.receipt-categories-title {
+    padding: 16px 18px;
+    font-size: 20px;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+.receipt-cat-link {
+    display: block;
+    padding: 16px 18px;
+    font-size: 19px;
+    text-decoration: none;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.receipt-cat-link.active {
+    background: rgba(255,255,255,0.18);
+    font-weight: 500;
+}
+.receipt-content {
+    padding: 20px;
+    background: #fff;
+}
+.parts-search-input {
+    width: 100%;
+    margin-bottom: 20px;
+}
+.parts-list {
+    display: grid;
+    gap: 16px;
+}
+
+/* Карточка запчасти */
+.part-card {
+    border: 2px solid #024989;
+    border-radius: 12px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+}
+.part-card img {
+    width: 100px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #e8f0f7;
+}
+.part-title {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+.part-category {
+    font-size: 15px;
+    color: #777;
+    margin-bottom: 12px;
+}
+.warehouse-rows {
+    display: grid;
+    gap: 8px;
+}
+.warehouse-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f4f8fb;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.warehouse-name {
+    font-size: 17px;
+}
+.warehouse-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.warehouse-qty {
+    font-size: 18px;
+    font-weight: 600;
+    color: #024989;
+}
+.warehouse-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== Планшеты ===== */
+@media (max-width: 900px) {
+    .receipt-layout {
+        grid-template-columns: 30% 70%;
+    }
+}
+
+/* ===== Телефоны ===== */
+@media (max-width: 700px) {
+    .receipt-title {
+        font-size: 20px;
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+
+    .receipt-layout {
+        grid-template-columns: 1fr;
+        border-radius: 12px;
+    }
+
+    /* Категории — горизонтальная прокручиваемая лента */
+    .receipt-categories {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .receipt-categories::-webkit-scrollbar {
+        display: none;
+    }
+    .receipt-categories-title {
+        display: none;
+    }
+    .receipt-cat-link {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 14px 18px;
+        font-size: 16px;
+        border-bottom: none;
+        border-right: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .receipt-content {
+        padding: 16px;
+    }
+
+    /* Карточка запчасти: фото сверху */
+    .part-card {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+    .part-card img {
+        width: 100%;
+        height: 140px;
+    }
+
+    /* Строка склада: название сверху, количество+кнопки снизу на всю ширину */
+    .warehouse-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .warehouse-right {
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+</style>
+@endsection
+
 @section('content')
 
     @php
         $placeholder = 'https://placehold.co/500x300/e8f0f7/024989?text=Фото+товара';
     @endphp
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <a href="{{ route('receipts.cars') }}" style="font-size:18px; color:#024989; text-decoration:none;">&larr; Назад к машинам</a>
-        <div style="font-size:24px; font-weight:600; color:#024989;">{{ $car->title }}</div>
+    <div class="receipt-header">
+        <a href="{{ route('receipts.cars') }}" class="receipt-back-link">&larr; Назад к машинам</a>
+        <div class="receipt-title">{{ $car->title }}</div>
         <div></div>
     </div>
 
     @if (session('success'))
-        <div style="padding:14px 18px; margin-bottom:20px; background:#e6f4ea; border:2px solid #2e7d32; color:#2e7d32; border-radius:10px; font-size:18px;">
+        <div class="alert-success">
             {{ session('success') }}
         </div>
     @endif
 
     @if ($errors->any())
-        <div style="padding:14px 18px; margin-bottom:20px; background:#fdecea; border:2px solid #a32d2d; color:#a32d2d; border-radius:10px; font-size:18px;">
+        <div class="alert-error">
             @foreach ($errors->all() as $error)
                 <div>{{ $error }}</div>
             @endforeach
         </div>
     @endif
 
-    <div style="display:grid; grid-template-columns:25% 75%; border:2px solid #024989; border-radius:10px; overflow:hidden;">
+    <div class="receipt-layout">
 
         {{-- Категории --}}
-        <div style="background:#024989; color:#fff;">
-            <div style="padding:16px 18px; font-size:20px; font-weight:500; border-bottom:1px solid rgba(255,255,255,0.3);">
-                Категории
-            </div>
-            <a href="{{ route('receipts.parts', $car) }}"
-               style="display:block; padding:16px 18px; font-size:19px; text-decoration:none; color:#fff; {{ !$selectedCategoryId ? 'background:rgba(255,255,255,0.18); font-weight:500;' : '' }} border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div class="receipt-categories">
+            <div class="receipt-categories-title">Категории</div>
+            <a href="{{ route('receipts.parts', $car) }}" class="receipt-cat-link {{ !$selectedCategoryId ? 'active' : '' }}">
                 Все категории
             </a>
             @foreach ($categories as $category)
                 <a href="{{ route('receipts.parts', [$car, 'category' => $category->id]) }}"
-                   style="display:block; padding:16px 18px; font-size:19px; text-decoration:none; color:#fff; {{ (string) $selectedCategoryId === (string) $category->id ? 'background:rgba(255,255,255,0.18); font-weight:500;' : '' }} border-bottom:1px solid rgba(255,255,255,0.15);">
+                   class="receipt-cat-link {{ (string) $selectedCategoryId === (string) $category->id ? 'active' : '' }}">
                     {{ $category->title }}
                 </a>
             @endforeach
         </div>
 
         {{-- Запчасти --}}
-        <div style="padding:20px; background:#fff;">
+        <div class="receipt-content">
 
-            <input type="text" id="parts-search-input" placeholder="Поиск запчасти" autocomplete="off" style="width:100%; margin-bottom:20px;">
+            <input type="text" id="parts-search-input" class="parts-search-input" placeholder="Поиск запчасти" autocomplete="off">
 
             @if ($products->isEmpty())
                 <p style="font-size:19px; color:#555;">Для этой машины пока нет запчастей.</p>
             @else
-                <div id="parts-list" style="display:grid; gap:16px;">
+                <div id="parts-list" class="parts-list">
                     @foreach ($products as $product)
-                        <div class="part-card" data-search="{{ Str::lower($product->title) }}"
-                             style="border:2px solid #024989; border-radius:12px; padding:16px; display:grid; grid-template-columns:100px 1fr; gap:16px;">
+                        <div class="part-card" data-search="{{ Str::lower($product->title) }}">
 
-                            <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}"
-                                 style="width:100px; height:90px; object-fit:cover; border-radius:8px; background:#e8f0f7;">
+                            <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}">
 
                             <div>
-                                <div style="font-size:19px; font-weight:600; margin-bottom:2px;">{{ $product->title }}</div>
-                                <div style="font-size:15px; color:#777; margin-bottom:12px;">{{ $product->category->title ?? '—' }}</div>
+                                <div class="part-title">{{ $product->title }}</div>
+                                <div class="part-category">{{ $product->category->title ?? '—' }}</div>
 
-                                <div style="display:grid; gap:8px;">
+                                <div class="warehouse-rows">
                                     @foreach ($warehouses as $warehouse)
                                         @php
                                             $qtyRow = $product->quantities->firstWhere('warehouse_id', $warehouse->id);
                                             $qtyValue = $qtyRow->quantity ?? 0;
                                         @endphp
-                                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f4f8fb; border-radius:8px; flex-wrap:wrap; gap:10px;">
-                                            <div style="font-size:17px;">{{ $warehouse->title }}</div>
+                                        <div class="warehouse-row">
+                                            <div class="warehouse-name">{{ $warehouse->title }}</div>
 
-                                            <div style="display:flex; align-items:center; gap:16px;">
-                                                <div style="font-size:18px; font-weight:600; color:#024989;">{{ $qtyValue }} шт</div>
+                                            <div class="warehouse-right">
+                                                <div class="warehouse-qty">{{ $qtyValue }} шт</div>
 
-                                                <div style="display:flex; gap:10px;">
+                                                <div class="warehouse-actions">
                                                     @if ($qtyRow)
                                                         <button type="button"
                                                             class="icon-btn icon-btn--edit"

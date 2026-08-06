@@ -2,51 +2,178 @@
 
 @section('title', 'Товары — Автозапчасти')
 
+@section('styles')
+<style>
+/* ===== Блок "Категории + Товары" ===== */
+.goods-layout {
+    display: grid;
+    grid-template-columns: 25% 75%;
+    border: 2px solid #024989;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Категории (десктоп: вертикальный список) */
+.goods-categories {
+    background: #024989;
+    color: #fff;
+}
+.goods-categories-title {
+    padding: 16px 18px;
+    font-size: 20px;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+.goods-cat-link {
+    display: block;
+    padding: 16px 18px;
+    font-size: 19px;
+    text-decoration: none;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.goods-cat-link.active {
+    background: rgba(255,255,255,0.18);
+    font-weight: 500;
+}
+
+/* Карточки товаров */
+.goods-content {
+    padding: 20px;
+    background: #fff;
+}
+.goods-search-input {
+    width: 100%;
+    margin-bottom: 20px;
+}
+.goods-export-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+
+}
+.goods-products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.product-card {
+    border: 2px solid #024989;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.product-card img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    display: block;
+    background: #e8f0f7;
+}
+.product-card-body {
+    padding: 16px 18px;
+}
+
+/* ===== Мобильные экраны ===== */
+@media (max-width: 700px) {
+    /* Сайдбар и контент идут друг под другом, а не колонками */
+    .goods-layout {
+        grid-template-columns: 1fr;
+        border-radius: 12px;
+    }
+
+    /* Категории превращаются в горизонтальную прокручиваемую ленту сверху */
+    .goods-categories {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .goods-categories::-webkit-scrollbar {
+        display: none;
+    }
+    .goods-categories-title {
+        display: none; /* заголовок "Категории" не нужен на узком экране, экономим место */
+    }
+    .goods-cat-link {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 14px 18px;
+        font-size: 16px;
+        border-bottom: none;
+        border-right: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .goods-content {
+        padding: 16px;
+    }
+
+    /* Товары — по одному в ряд, шире, по центру */
+    .goods-products-grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        margin: 0 auto;
+        gap: 20px;
+    }
+    .product-card img {
+        height: 260px;
+    }
+    .goods-export-row {
+        justify-content: stretch;
+    }
+    .goods-export-row a {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+@endsection
+
 @section('content')
     @php
         // Заглушка, пока у товара нет фото
         $placeholder = 'https://placehold.co/500x300/e8f0f7/024989?text=Фото+товара';
     @endphp
 
-    <div style="display:grid; grid-template-columns:25% 75%; border:2px solid #024989; border-radius:10px; overflow:hidden;">
+    <div class="goods-layout">
         {{-- Категории --}}
-        <div style="background:#024989; color:#fff;">
-            <div style="padding:16px 18px; font-size:20px; font-weight:500; border-bottom:1px solid rgba(255,255,255,0.3);">
-                Категории
-            </div>
+        <div class="goods-categories">
+            <div class="goods-categories-title">Категории</div>
 
-            <a href="{{ route('goods') }}"
-                style="display:block; padding:16px 18px; font-size:19px; text-decoration:none; color:#fff; {{ !$selectedCategoryId ? 'background:rgba(255,255,255,0.18); font-weight:500;' : '' }} border-bottom:1px solid rgba(255,255,255,0.15);">
+            <a href="{{ route('goods') }}" class="goods-cat-link {{ !$selectedCategoryId ? 'active' : '' }}">
                 Все категории
             </a>
 
             @foreach ($categories as $category)
                 <a href="{{ route('goods', ['category' => $category->id]) }}"
-                    style="display:block; padding:16px 18px; font-size:19px; text-decoration:none; color:#fff; {{ (string) $selectedCategoryId === (string) $category->id ? 'background:rgba(255,255,255,0.18); font-weight:500;' : '' }} border-bottom:1px solid rgba(255,255,255,0.15);">
+                    class="goods-cat-link {{ (string) $selectedCategoryId === (string) $category->id ? 'active' : '' }}">
                     {{ $category->title }}
                 </a>
             @endforeach
         </div>
 
         {{-- Карточки товаров --}}
-        <div style="padding:20px; background:#fff;">
+        <div class="goods-content">
             {{-- Живой поиск: чисто на клиенте, без запросов к серверу --}}
-            <input type="text" id="goods-search-input"
+            <input type="text" id="goods-search-input" class="goods-search-input"
                 placeholder="Например: буф — сразу покажет «Буфер» и похожие"
-                autocomplete="off" style="width:100%; margin-bottom:20px;">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-                <a href="{{ route('goods.export') }}" class="btn-primary" style="text-decoration:none; display:inline-block; padding:12px 20px; font-size:17px;">
+                autocomplete="off">
+            <div class="goods-export-row">
+                <a href="{{ route('goods.export') }}" class="btn-primary" style="text-decoration:none; display:inline-block; padding:12px 20px; font-size:17px; text-align:center;">
                     Экспорт в Excel
                 </a>
             </div>
             @if ($products->isEmpty())
                 <p style="font-size:19px; color:#555;">В этой категории пока нет товаров.</p>
             @else
-                <div id="goods-products-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div id="goods-products-grid" class="goods-products-grid">
                     @foreach ($products as $product)
-                        <div class="product-card" data-search="{{ Str::lower($product->title) }}" style="border:2px solid #024989; border-radius:12px; overflow:hidden;">
-                            <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}" style="width:100%; height:160px; object-fit:cover; display:block; background:#e8f0f7;">
-                            <div style="padding:16px 18px;">
+                        <div class="product-card" data-search="{{ Str::lower($product->title) }}">
+                            <img src="{{ $product->image ? asset('storage/' . $product->image) : $placeholder }}" alt="{{ $product->title }}">
+                            <div class="product-card-body">
                                 {{-- Название с позицией и цветом сбоку --}}
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
                                     <span style="font-size:19px; font-weight:500;">{{ $product->title }}</span>
@@ -62,7 +189,7 @@
                                     @endif
                                 </div>
                                 <div style="font-size:15px; color:#777; margin-bottom:8px;">{{ $product->category->title }}</div>
-                            
+
                                 @if ($product->car)
                                     <div style="font-size:14px; color:#0a6b3a; margin-bottom:8px;">{{ $product->car->title }}</div>
                                 @endif
